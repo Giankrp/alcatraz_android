@@ -4,7 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:alcatraz_android/src/features/auth/presentation/widgets/animated_bubbles_background.dart';
 import 'package:alcatraz_android/src/features/vault/presentation/screens/vault_screen.dart';
+import 'package:alcatraz_android/src/features/auth/presentation/screens/register_screen.dart';
 
+/// LoginScreen: Application login screen.
+/// Main entry point for unauthenticated users.
+/// Offers email/password login and (simulated) social options.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -13,17 +17,23 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  // Form key to handle validation.
   final _formKey = GlobalKey<FormState>();
+
+  // Password visibility state.
   bool _isPasswordVisible = false;
+
+  // "Remember credentials" checkbox state.
   bool _rememberMe = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.black, // Pure black background.
       body: Stack(
         children: [
-          // Background Gradient
+          // ----------------------------------------------------------------
+          // LAYER 1: Radial Gradient Background
           Container(
             decoration: const BoxDecoration(
               gradient: RadialGradient(
@@ -34,9 +44,13 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          // Animated Bubbles
+
+          // ----------------------------------------------------------------
+          // LAYER 2: Bubble Animation
           const Positioned.fill(child: AnimatedBubblesBackground()),
-          // Content
+
+          // ----------------------------------------------------------------
+          // LAYER 3: Form Content
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -46,7 +60,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 40),
-                    // Lock Icon with Glass Effect
+
+                    // Logo/Lock Icon with Glassmorphism effect
                     Center(
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(24),
@@ -71,7 +86,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    // Title
+
+                    // Welcome Title
                     const Text(
                       'Inicia sesión',
                       style: TextStyle(
@@ -82,6 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
+
                     // Subtitle
                     const Text(
                       'Bienvenido de vuelta. Protegemos tus\ndatos con máxima seguridad.',
@@ -89,7 +106,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),
+
+                    // ----------------------------------------------------------------
                     // Social Login Buttons
+                    // (Visual implementation, no real logic for now)
                     _buildSocialButton(
                       iconWidget: Image.network(
                         'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png',
@@ -114,7 +134,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {},
                     ),
                     const SizedBox(height: 32),
-                    // Divider
+
+                    // Divider with text "OR CONTINUE WITH"
                     const Row(
                       children: [
                         Expanded(child: Divider(color: Colors.grey)),
@@ -133,7 +154,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                     const SizedBox(height: 32),
-                    // Email Input
+
+                    // ----------------------------------------------------------------
+                    // Field: Email
                     const Text(
                       'Email *',
                       style: TextStyle(color: Colors.grey, fontSize: 12),
@@ -168,7 +191,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    // Password Input
+
+                    // ----------------------------------------------------------------
+                    // Field: Password
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -176,9 +201,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           'Contraseña *',
                           style: TextStyle(color: Colors.grey, fontSize: 12),
                         ),
+                        // "Forgot password?" link
                         GestureDetector(
                           onTap: () {
-                            // Forgot password logic
+                            // Logic for password recovery
                           },
                           child: const Text(
                             '¿Olvidaste tu contraseña?',
@@ -231,7 +257,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    // Remember Me Checkbox
+
+                    // ----------------------------------------------------------------
+                    // "Remember credentials" checkbox
                     Row(
                       children: [
                         SizedBox(
@@ -259,10 +287,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                     const SizedBox(height: 24),
+
+                    // ----------------------------------------------------------------
                     // Login Button
                     ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
+                          // Navigates to Vault if form is valid.
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
@@ -295,7 +326,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    // Register Link
+
+                    // ----------------------------------------------------------------
+                    // Link to Registration
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -304,7 +337,15 @@ class _LoginScreenState extends State<LoginScreen> {
                           style: TextStyle(color: Colors.grey),
                         ),
                         GestureDetector(
-                          onTap: () {},
+                          onTap: () {
+                            // Navigates to Registration Screen.
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const RegisterScreen(),
+                              ),
+                            );
+                          },
                           child: const Text(
                             'Regístrate',
                             style: TextStyle(
@@ -326,6 +367,8 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  /// Builder for social network buttons.
+  /// Creates a custom border button (OutlinedButton).
   Widget _buildSocialButton({
     required Widget iconWidget,
     required String label,

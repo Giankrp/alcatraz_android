@@ -1,3 +1,4 @@
+import 'package:alcatraz_android/src/features/auth/presentation/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:alcatraz_android/src/features/vault/presentation/screens/vault_screen.dart';
 
@@ -13,7 +14,7 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(),
-      home: const VaultScreen(),
+      home: const LoginScreen(),
     );
   }
 }
