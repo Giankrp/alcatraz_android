@@ -167,7 +167,9 @@ class CryptoService {
     );
 
     final decodedString = utf8.decode(decryptedBytes);
-    return json.decode(decodedString) as Map<String, dynamic>;
+    final decodedJson = json.decode(decodedString) as Map<String, dynamic>;
+    print('DEBUG: Decrypted JSON: $decodedJson');
+    return decodedJson;
   }
 
   Uint8List _generateRandomBytes(int length) {

@@ -9,20 +9,26 @@ class VaultRepository {
 
   VaultRepository(this._apiClient, this._cryptoService);
 
-  Future<List<VaultItem>> getItems(String masterKey) async {
+  Future<List<VaultItem>> getItems() async {
     try {
       final response = await _apiClient.dio.get('/api/vault/items');
       final List itemsJson = response.data;
 
-      final items = <VaultItem>[];
-      for (var json in itemsJson) {
-        final item = VaultItem.fromJson(json);
-        final decryptedContent = await decryptItemContent(item, masterKey);
-        items.add(item.copyWith(decryptedContent: decryptedContent));
-      }
-      return items;
+      return itemsJson.map((json) => VaultItem.fromJson(json)).toList();
     } on DioException catch (e) {
       throw Exception('Error al obtener ítems: ${e.message}');
+    }
+  }
+
+  Future<VaultItem> getItemDetails(String id, String masterKey) async {
+    try {
+      final response = await _apiClient.dio.get('/api/vault/items/$id');
+      final item = VaultItem.fromJson(response.data);
+      
+      final decryptedContent = await decryptItemContent(item, masterKey);
+      return item.copyWith(decryptedContent: decryptedContent);
+    } on DioException catch (e) {
+      throw Exception('Error al obtener detalles: ${e.message}');
     }
   }
 

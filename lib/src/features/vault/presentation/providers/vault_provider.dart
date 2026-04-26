@@ -37,15 +37,24 @@ class VaultNotifier extends StateNotifier<VaultState> {
   VaultNotifier(this._repository, this._ref) : super(VaultState());
 
   Future<void> fetchItems() async {
-    final session = _ref.read(authProvider).session;
-    if (session == null) return;
-
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final items = await _repository.getItems(session.masterKey);
+      final items = await _repository.getItems();
       state = state.copyWith(items: items, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<VaultItem?> loadItemDetails(String id) async {
+    final session = _ref.read(authProvider).session;
+    if (session == null) return null;
+
+    try {
+      return await _repository.getItemDetails(id, session.masterKey);
+    } catch (e) {
+      state = state.copyWith(error: 'Error al cargar detalles: $e');
+      return null;
     }
   }
 

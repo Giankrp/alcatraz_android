@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -251,102 +252,132 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
     );
   }
 
+  void _showItemDetails(VaultItem item) async {
+    // Show a loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: Color(0xFF00E676)),
+      ),
+    );
+
+    final fullItem = await ref.read(vaultProvider.notifier).loadItemDetails(item.id!);
+    
+    if (!mounted) return;
+    Navigator.pop(context); // Close loading dialog
+
+    if (fullItem == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al cargar los detalles')),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => _ItemDetailBottomSheet(item: fullItem),
+    );
+  }
+
   Widget _buildVaultCard(VaultItem item) {
     IconData icon;
     Color tagColor = const Color(0xFF00E676);
     String? tagText;
 
-    switch (item.type) {
-      case 'login':
-        icon = FontAwesomeIcons.key;
-        break;
-      case 'card':
-        icon = FontAwesomeIcons.creditCard;
-        tagText = 'TARJETA';
-        break;
-      case 'note':
-        icon = FontAwesomeIcons.fileLines;
-        tagText = 'NOTA';
-        break;
-      default:
-        icon = Icons.lock_outline;
+    // Enhanced icon mapping
+    final type = item.type.toLowerCase();
+    final iconName = item.secret.salt; // Backend sometimes sends icon info here or in icon field
+    
+    if (type.contains('password') || type.contains('login')) {
+      icon = FontAwesomeIcons.key;
+    } else if (type.contains('card')) {
+      icon = FontAwesomeIcons.creditCard;
+      tagText = 'TARJETA';
+    } else if (type.contains('note')) {
+      icon = FontAwesomeIcons.fileLines;
+      tagText = 'NOTA';
+    } else {
+      icon = Icons.lock_outline;
     }
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1E1E2C).withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(icon, color: Colors.white, size: 18),
-                  ),
-                  if (tagText != null)
+    return GestureDetector(
+      onTap: () => _showItemDetails(item),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E2C).withValues(alpha: 0.6),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: tagColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
-                        tagText,
-                        style: TextStyle(
-                          color: tagColor,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
+                      child: Icon(icon, color: Colors.white, size: 18),
+                    ),
+                    if (tagText != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: tagColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          tagText,
+                          style: TextStyle(
+                            color: tagColor,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                    const SizedBox(height: 4),
+                    Text(
+                      'Cifrado',
+                      style: TextStyle(
+                        color: Colors.grey.withValues(alpha: 0.7),
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    item.decryptedContent?.username.isNotEmpty == true
-                        ? item.decryptedContent!.username
-                        : item.decryptedContent?.url ?? '',
-                    style: TextStyle(
-                      color: Colors.grey.withValues(alpha: 0.7),
-                      fontSize: 12,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -371,6 +402,156 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
               fontSize: 10,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ItemDetailBottomSheet extends StatefulWidget {
+  final VaultItem item;
+  const _ItemDetailBottomSheet({required this.item});
+
+  @override
+  State<_ItemDetailBottomSheet> createState() => _ItemDetailBottomSheetState();
+}
+
+class _ItemDetailBottomSheetState extends State<_ItemDetailBottomSheet> {
+  bool _obscurePassword = true;
+
+  void _copyToClipboard(String label, String value) {
+    Clipboard.setData(ClipboardData(text: value));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$label copiado al portapapeles'),
+        duration: const Duration(seconds: 2),
+        backgroundColor: const Color(0xFF00E676),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final content = widget.item.decryptedContent!;
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00E676).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(Icons.lock, color: Color(0xFF00E676)),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.item.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      widget.item.type.toUpperCase(),
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 32),
+          if (content.username.isNotEmpty)
+            _buildDetailRow('Usuario', content.username),
+          _buildDetailRow(
+            'Contraseña',
+            content.password,
+            isPassword: true,
+            obscure: _obscurePassword,
+            onToggle: () => setState(() => _obscurePassword = !_obscurePassword),
+          ),
+          if (content.url.isNotEmpty) _buildDetailRow('Sitio Web', content.url),
+          if (content.notes.isNotEmpty) _buildDetailRow('Notas', content.notes),
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(
+    String label,
+    String value, {
+    bool isPassword = false,
+    bool obscure = false,
+    VoidCallback? onToggle,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.grey.withValues(alpha: 0.5),
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  isPassword && obscure ? '••••••••••••' : value,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ),
+              if (isPassword)
+                IconButton(
+                  icon: Icon(
+                    obscure ? Icons.visibility : Icons.visibility_off,
+                    size: 20,
+                    color: Colors.grey,
+                  ),
+                  onPressed: onToggle,
+                ),
+              IconButton(
+                icon: const Icon(Icons.copy, size: 20, color: Colors.grey),
+                onPressed: () => _copyToClipboard(label, value),
+              ),
+            ],
           ),
         ],
       ),

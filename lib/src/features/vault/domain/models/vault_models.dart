@@ -57,7 +57,7 @@ class VaultSecret {
 
   factory VaultSecret.fromJson(Map<String, dynamic> json) {
     return VaultSecret(
-      data: json['data'] ?? '',
+      data: json['encrypted_data'] ?? json['data'] ?? '',
       iv: json['iv'] ?? '',
       salt: json['salt'] ?? '',
     );
@@ -87,7 +87,7 @@ class DecryptedVaultContent {
       username: json['username'] ?? '',
       password: json['password'] ?? '',
       url: json['url'] ?? '',
-      notes: json['notes'] ?? '',
+      notes: json['note'] ?? json['notes'] ?? json['content'] ?? '',
     );
   }
 
