@@ -30,7 +30,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isPasswordVisible = false;
 
   // "Remember credentials" checkbox state.
-  bool _rememberMe = false;
+  final bool _rememberMe = false;
 
   @override
   void dispose() {

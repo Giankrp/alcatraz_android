@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 class VaultItem {
   final String? id;

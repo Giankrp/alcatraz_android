@@ -1,8 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/vault_models.dart';
 import '../../data/vault_repository.dart';
-import '../../../../core/crypto/crypto_service.dart';
-import '../../../../core/network/api_client.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 final vaultRepositoryProvider = Provider((ref) {
