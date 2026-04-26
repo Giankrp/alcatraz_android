@@ -11,11 +11,27 @@ dependencies:
     sdk: flutter
   font_awesome_flutter: ^10.12.0
   email_validator: ^3.0.0
+  dio: ^5.9.2
+  dio_cookie_manager: ^3.4.0
+  cookie_jar: ^4.0.9
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+  flutter_secure_storage: ^10.0.0
+  cryptography: ^2.9.0
+  argon2: ^1.0.1
+  uuid: ^4.5.3
+  json_annotation: ^4.9.0
+  freezed_annotation: ^3.1.0
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
+  flutter_lints: 3.0.1
+  build_runner: ^2.14.1
+  # riverpod_generator: ^4.0.0+1
+  json_serializable: ^6.11.2
+  freezed: ^3.2.3
 
 flutter:
   uses-material-design: true

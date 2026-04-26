@@ -1,0 +1,12 @@
+[
+  {
+    "label": "Flutter: Launch Emulator",
+    "command": "flutter emulators --launch Pixel_9_Pro"
+  },
+  {
+    "label": "Flutter: Run App",
+    "command": "flutter run",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": true
+  }
+]
