@@ -6,6 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:alcatraz_android/src/features/settings/presentation/screens/settings_screen.dart';
 import 'package:alcatraz_android/src/features/vault/presentation/providers/vault_provider.dart';
 import 'package:alcatraz_android/src/features/vault/domain/models/vault_models.dart';
+import 'package:alcatraz_android/src/features/vault/presentation/screens/add_item_screen.dart';
 
 /// VaultScreen: Main application screen.
 class VaultScreen extends ConsumerStatefulWidget {
@@ -117,7 +118,10 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
                                         color: Colors.black,
                                       ),
                                       onPressed: () {
-                                        // Show add item dialog
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => const AddItemScreen()),
+                                        );
                                       },
                                     ),
                                   ),
@@ -289,7 +293,6 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
 
     // Enhanced icon mapping
     final type = item.type.toLowerCase();
-    final iconName = item.secret.salt; // Backend sometimes sends icon info here or in icon field
     
     if (type.contains('password') || type.contains('login')) {
       icon = FontAwesomeIcons.key;
@@ -409,15 +412,15 @@ class _VaultScreenState extends ConsumerState<VaultScreen> {
   }
 }
 
-class _ItemDetailBottomSheet extends StatefulWidget {
+class _ItemDetailBottomSheet extends ConsumerStatefulWidget {
   final VaultItem item;
   const _ItemDetailBottomSheet({required this.item});
 
   @override
-  State<_ItemDetailBottomSheet> createState() => _ItemDetailBottomSheetState();
+  ConsumerState<_ItemDetailBottomSheet> createState() => _ItemDetailBottomSheetState();
 }
 
-class _ItemDetailBottomSheetState extends State<_ItemDetailBottomSheet> {
+class _ItemDetailBottomSheetState extends ConsumerState<_ItemDetailBottomSheet> {
   bool _obscurePassword = true;
 
   void _copyToClipboard(String label, String value) {
@@ -500,10 +503,101 @@ class _ItemDetailBottomSheetState extends State<_ItemDetailBottomSheet> {
           ),
           if (content.url.isNotEmpty) _buildDetailRow('Sitio Web', content.url),
           if (content.notes.isNotEmpty) _buildDetailRow('Notas', content.notes),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _editItem,
+                  icon: const Icon(Icons.edit, size: 18),
+                  label: const Text('Editar'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _confirmDelete,
+                  icon: const Icon(Icons.delete_outline, size: 18),
+                  label: const Text('Eliminar'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.redAccent,
+                    side: BorderSide(color: Colors.redAccent.withValues(alpha: 0.2)),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 40),
         ],
       ),
     );
+  }
+
+  void _editItem() {
+    Navigator.pop(context); // Close bottom sheet
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddItemScreen(existingItem: widget.item),
+      ),
+    );
+  }
+
+  void _confirmDelete() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A1A),
+        title: const Text('Eliminar Ítem', style: TextStyle(color: Colors.white)),
+        content: const Text(
+          '¿Estás seguro de que quieres eliminar este ítem de tu bóveda? Esta acción no se puede deshacer.',
+          style: TextStyle(color: Colors.grey),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+              _deleteItem();
+            },
+            child: const Text('Eliminar', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _deleteItem() async {
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: Colors.redAccent),
+      ),
+    );
+
+    await ref.read(vaultProvider.notifier).deleteItem(widget.item.id!);
+    
+    if (mounted) {
+      Navigator.pop(context); // Close loading
+      Navigator.pop(context); // Close bottom sheet
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ítem eliminado'),
+          backgroundColor: Color(0xFF00E676),
+        ),
+      );
+    }
   }
 
   Widget _buildDetailRow(

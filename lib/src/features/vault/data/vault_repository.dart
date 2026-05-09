@@ -75,4 +75,41 @@ class VaultRepository {
       throw Exception('Error al crear ítem: ${e.message}');
     }
   }
+
+  Future<void> updateItem(
+    String id,
+    String title,
+    String type,
+    DecryptedVaultContent content,
+    String masterKey,
+  ) async {
+    final encryptedData = await _cryptoService.encryptData(
+      content.toJson(),
+      masterKey,
+    );
+
+    final data = {
+      'title': title,
+      'type': type,
+      'secret': {
+        'data': encryptedData['encrypted_data'],
+        'iv': encryptedData['iv'],
+        'salt': encryptedData['salt'],
+      },
+    };
+
+    try {
+      await _apiClient.dio.put('/api/vault/items/$id', data: data);
+    } on DioException catch (e) {
+      throw Exception('Error al actualizar ítem: ${e.message}');
+    }
+  }
+
+  Future<void> deleteItem(String id) async {
+    try {
+      await _apiClient.dio.delete('/api/vault/items/$id');
+    } on DioException catch (e) {
+      throw Exception('Error al eliminar ítem: ${e.message}');
+    }
+  }
 }

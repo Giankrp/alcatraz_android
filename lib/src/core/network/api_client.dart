@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:path_provider/path_provider.dart';
@@ -35,7 +36,7 @@ class ApiClient {
       LogInterceptor(
         requestBody: true,
         responseBody: true,
-        logPrint: (obj) => print('API: $obj'),
+        logPrint: (obj) => debugPrint('API: $obj'),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:dio/dio.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../domain/models/auth_models.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/crypto/crypto_service.dart';
@@ -8,8 +9,17 @@ import '../../../core/crypto/crypto_service.dart';
 class AuthRepository {
   final ApiClient _apiClient;
   final CryptoService _cryptoService;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   AuthRepository(this._apiClient, this._cryptoService);
+
+  Future<GoogleSignInAccount?> signInWithGoogle() async {
+    try {
+      return await _googleSignIn.signIn();
+    } catch (e) {
+      rethrow;
+    }
+  }
 
   Future<LoginResponse> login(String email, String password) async {
     // 1. Hash deterministic for Login

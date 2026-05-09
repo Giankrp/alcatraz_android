@@ -29,9 +29,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   // Password visibility state.
   bool _isPasswordVisible = false;
 
-  // "Remember credentials" checkbox state.
-  final bool _rememberMe = false;
-
   @override
   void dispose() {
     _emailController.dispose();
@@ -62,6 +59,63 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         );
       }
+    }
+  }
+
+  void _handleSocialLogin(String provider) async {
+    // Show a snackbar indicating the login attempt
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Iniciando sesión con $provider...'),
+        backgroundColor: const Color(0xFF00E676),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+
+    if (provider == 'Google') {
+      await ref.read(authProvider.notifier).signInWithGoogle();
+      final authState = ref.read(authProvider);
+      
+      if (authState.session != null && mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const VaultScreen()),
+        );
+      } else if (authState.error != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(authState.error!),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+      return;
+    }
+
+    if (provider == 'Apple') {
+      // Apple is currently not implemented for login, as requested
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Inicio con Apple no disponible actualmente.'),
+              backgroundColor: Colors.orangeAccent,
+            ),
+          );
+        }
+      });
+      return;
+    }
+
+    // Simulate a network delay for Google and GitHub
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (mounted) {
+      // Navigate to the Vault screen to simulate a successful login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const VaultScreen()),
+      );
     }
   }
 
@@ -160,7 +214,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               const Icon(FontAwesomeIcons.google, size: 20),
                         ),
                         label: 'Google',
-                        onPressed: () {},
+                        onPressed: () => _handleSocialLogin('Google'),
                       ),
                       const SizedBox(height: 12),
                       _buildSocialButton(
@@ -169,7 +223,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           size: 20,
                         ),
                         label: 'GitHub',
-                        onPressed: () {},
+                        onPressed: () => _handleSocialLogin('GitHub'),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildSocialButton(
+                        iconWidget: const Icon(
+                          FontAwesomeIcons.apple,
+                          size: 20,
+                        ),
+                        label: 'Apple',
+                        onPressed: () => _handleSocialLogin('Apple'),
                       ),
                       const SizedBox(height: 32),
 

@@ -74,6 +74,37 @@ class VaultNotifier extends StateNotifier<VaultState> {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
+
+  Future<void> updateItem(
+    String id,
+    String title,
+    String type,
+    DecryptedVaultContent content,
+  ) async {
+    final session = _ref.read(authProvider).session;
+    if (session == null) return;
+
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _repository.updateItem(id, title, type, content, session.masterKey);
+      await fetchItems(); // Refresh
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> deleteItem(String id) async {
+    final session = _ref.read(authProvider).session;
+    if (session == null) return;
+
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _repository.deleteItem(id);
+      await fetchItems(); // Refresh
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
 }
 
 final vaultProvider = StateNotifierProvider<VaultNotifier, VaultState>((ref) {

@@ -87,6 +87,32 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  Future<void> signInWithGoogle() async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final account = await _repository.signInWithGoogle();
+      
+      if (account == null) {
+        state = state.copyWith(isLoading: false);
+        return;
+      }
+
+      // Since there's no backend for social login yet, 
+      // we'll create a simulated session with the Google email.
+      // In a production app, we would send the idToken to the backend
+      // and get the encrypted master key.
+      final session = UserSession(
+        email: account.email,
+        masterKey: 'google_session_mock_key',
+        token: 'google_token_${account.id}',
+      );
+
+      state = state.copyWith(session: session, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: 'Error con Google: $e');
+    }
+  }
+
   void logout() {
     state = AuthState();
   }

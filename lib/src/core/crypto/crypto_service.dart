@@ -168,7 +168,7 @@ class CryptoService {
 
     final decodedString = utf8.decode(decryptedBytes);
     final decodedJson = json.decode(decodedString) as Map<String, dynamic>;
-    print('DEBUG: Decrypted JSON: $decodedJson');
+    // DEBUG: Decrypted JSON: $decodedJson
     return decodedJson;
   }
 
