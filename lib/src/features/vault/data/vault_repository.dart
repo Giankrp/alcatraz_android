@@ -9,6 +9,21 @@ class VaultRepository {
 
   VaultRepository(this._apiClient, this._cryptoService);
 
+  String _getIconForType(String type) {
+    switch (type) {
+      case 'password':
+        return 'i-heroicons-key';
+      case 'note':
+        return 'i-heroicons-document-text';
+      case 'card':
+        return 'i-heroicons-credit-card';
+      case 'identity':
+        return 'i-heroicons-user-circle';
+      default:
+        return 'i-heroicons-question-mark-circle';
+    }
+  }
+
   Future<List<VaultItem>> getItems() async {
     try {
       final response = await _apiClient.dio.get('/api/vault/items');
@@ -59,9 +74,12 @@ class VaultRepository {
       masterKey,
     );
 
+    final String icon = _getIconForType(type);
+
     final data = {
       'title': title,
       'type': type,
+      'icon': icon,
       'secret': {
         'data': encryptedData['encrypted_data'],
         'iv': encryptedData['iv'],
@@ -88,9 +106,12 @@ class VaultRepository {
       masterKey,
     );
 
+    final String icon = _getIconForType(type);
+
     final data = {
       'title': title,
       'type': type,
+      'icon': icon,
       'secret': {
         'data': encryptedData['encrypted_data'],
         'iv': encryptedData['iv'],
